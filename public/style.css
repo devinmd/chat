@@ -1,0 +1,159 @@
+:root {
+  --sidenav-width: 240px;
+
+  --join-max-width: 320px;
+  --content-max-width: 720px;
+
+  --bg1: #000000;
+  --bg2: #080808;
+  --bg3: #101010;
+  --bg4: #181818;
+  --bg5: #202020;
+
+  --input-color: #cfcfcf;
+  --input-placeholder-color: #5f5f5f;
+  --btn-color: #bfbfbf;
+
+  --username-color: #9f9f9f;
+  --id-color: #5f5f5f;
+
+  --msg-time-color: #4f4f4f;
+  --msg-author-color: #afafaf;
+  --msg-content-color: #8f8f8f;
+  --msg-content-secondary-color: #5f5f5f;
+
+}
+
+html,
+* {
+  text-rendering: optimizeLegibility;
+  margin: 0;
+  -moz-osx-font-smoothing: grayscale;
+  border: none;
+  outline: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  font-family: Helvetica;
+  background-color: var(--bg2);
+}
+
+#app {
+  height: 100vh;
+    width: 100vw;
+}
+
+#sidenav {
+  height: 100vh;
+  min-width: var(--sidenav-width);
+  background-color: var(--bg3);
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#sidenav #user-list {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+#sidenav .container {
+  padding: 8px 16px;
+  transition: 50ms;
+}
+
+#sidenav .container:hover {
+  background-color: var(--bg4);
+}
+
+#sidenav .container-self {
+  margin-top: 16px;
+}
+
+#sidenav .container .username {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: var(--username-color);
+}
+
+#sidenav .container .id {
+  font-size: 12px;
+  color: var(--id-color);
+}
+
+#content-container {
+  margin-left: var(--sidenav-width);
+  padding: 64px 64px 0 64px;
+  display: none;
+}
+#content {
+  max-width: var(--content-max-width);
+  margin: auto;
+}
+
+#content #input {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+input {
+  flex-grow: 1;
+  background-color: var(--bg4);
+  border-radius: 4px;
+  height: 16px;
+  padding: 8px 16px;
+  color: var(--input-color);
+}
+
+input::placeholder {
+  color: var(--input-placeholder-color);
+}
+
+button {
+  padding: 0 16px;
+  background-color: var(--bg4);
+  border-radius: 4px;
+  transition: 50ms;
+  color: var(--btn-color);
+}
+
+button:hover {
+  background-color: var(--bg5);
+}
+
+#join {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 64px;
+  max-width: var(--join-max-width);
+  margin: auto;
+}
+
+#user-count {
+  font-weight: bold;
+  margin: 24px 16px 4px 16px;
+  font-size: 12px;
+  color: #4f4f4f;
+}
+
+#input #file-previews {
+  display: flex;
+  flex-direction: row;
+  gap:4px;
+}
+
+#input #image-preview{
+  height: 32px;
+  border-radius: 4px;
+
+}
+
+#file-input {
+  display: none;
+}

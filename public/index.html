@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>help me</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="message.css">
+
+</head>
+
+<body>
+
+	<div id="app">
+		<div id="sidenav">
+			<div id="you"></div>
+			<p id="user-count"></p>
+			<div id="user-list"></div>
+		</div>
+		<div id="join">
+			<input type="text" placeholder="Username" id="username-input" autocomplete="off">
+			<button onclick="join()">Join</button>
+		</div>
+		<div id="content-container">
+			<div id="content">
+
+
+				<div id="messages">
+				</div>
+				<div id="input">
+					<input type="file" oninput="imageUpload(this.files)" id="file-input">
+					<button onclick="document.querySelector('#file-input').click()">Upload</button>
+					<img src="" alt="" id="image-preview">
+					<input type="text" id="message-input" placeholder="Message">
+					<button onclick="sendMessage()">Send</button>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="./script.js"></script>
+
+
+</body>
+
+</html>
