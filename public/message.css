@@ -24,7 +24,11 @@
 
 #content #messages .messagebox .time {
   color: var(--msg-time-color);
+  text-align: right;
   margin-right: 4px;
+  width: 32px;
+  min-width: 32px;
+
 }
 
 #content #messages .messagebox .author {
@@ -34,6 +38,8 @@
 
 #content #messages .messagebox .text {
   color: var(--msg-content-color);
+  line-break: anywhere;
+
 }
 
 #content #messages .messagebox i{

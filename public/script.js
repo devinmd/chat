@@ -4,15 +4,25 @@ document.querySelector("#username-input").focus();
 
 var uploadedImage = "";
 
-var focusState = 1;
+var userStatus = 1;
+
+const statusMap = ["idle", "online"];
 
 var unreadMessages = 0;
+
+var messages = [];
+
+var users = [];
 
 var userCount = 0;
 
 function join() {
   socket.auth = { username: document.querySelector("#username-input").value };
   socket.connect();
+  socket.status = userStatus;
+}
+
+socket.on("connected", () => {
   console.log("joined as '" + socket.auth.username + "'");
 
   document.querySelector("#join").remove();
@@ -20,26 +30,37 @@ function join() {
   document.querySelector("#sidenav").style.display = "block";
 
   document.querySelector("#message-input").focus();
-}
+});
 
-socket.on("users", (users) => {
-  console.log("received updated user list:");
+// initial users list received on join
+socket.on("users", (userlist) => {
+  console.log("received user list:");
+  users = userlist;
   console.log(users);
 
+  generateUsers();
+});
+
+function generateUsers() {
   document.querySelector("#user-list").innerHTML = "";
   document.querySelector("#you").innerHTML = "";
 
   users.forEach((user, i) => {
     let container = document.createElement("div");
     container.className = "container";
+
+    let status = document.createElement("p");
+    status.className = "status " + statusMap[user.status];
+
     let username = document.createElement("p");
     username.innerHTML = user.username;
+    username.title = user.id
     username.className = "username";
     let id = document.createElement("p");
     id.innerHTML = user.id;
     id.className = "id";
 
-    container.append(username, id);
+    container.append(status, username, id);
 
     if (user.id !== socket.id) {
       document.querySelector("#user-list").append(container);
@@ -53,7 +74,7 @@ socket.on("users", (users) => {
   document.querySelector("#user-count").innerHTML = `${userCount - 1} OTHER USER${
     userCount - 1 > 1 || userCount - 1 == 0 ? "S" : ""
   }:`;
-});
+}
 
 function sendMessage() {
   let d = new Date();
@@ -72,33 +93,45 @@ function sendMessage() {
   document.querySelector("#message-input").focus();
   document.querySelector("#image-preview").src = "";
   uploadedImage = "";
+  regenerateMessages();
 }
 
 // receiver
 socket.on("message", function (msg) {
-  console.log(`'${msg.author_username}' (${msg.author_id}) said "${msg.content}"${msg.image == '' ? '' : ' with a file'}`);
+  messages.push(msg);
+  console.log(
+    `'${msg.author_username}' (${msg.author_id}) said "${msg.content}"${msg.image == "" ? "" : " with a file"}`
+  );
   showMessage(msg);
 
-  if (focusState == 0) {
+  if (userStatus == 0) {
     unreadMessages += 1;
-    document.title = `${unreadMessages} Unread Message${unreadMessages == 1 ? '' : 's'}`;
+    document.title = `Chat (${unreadMessages})`;
   }
+  regenerateMessages();
 });
 
 socket.on("user_leave", function (user) {
-  console.log(`'${user.username}' (${user.id}) has left`);
+  console.log(`'${user.username}' (${user.id}) left`);
+
+  users.splice(getUserById(user.id), 1);
+
+  console.log("updated user list");
 
   let d = new Date();
-
-  showMessage({ author_username: user.username, author_id: user.id, content: " <i>has left<i>", time: d.getTime() });
+  showMessage({ author_username: user.username, author_id: user.id, content: " <i> left<i>", time: d.getTime() });
+  messages.push({ author_username: user.username, author_id: user.id, content: " <i> left<i>", time: d.getTime() });
 });
 
 socket.on("user_join", function (user) {
-  console.log(`'${user.username}' (${user.id}) has joined`);
+  console.log(`'${user.username}' (${user.id}) joined`);
+
+  users.push(user);
+  console.log("updated user list");
 
   let d = new Date();
-
-  showMessage({ author_username: user.username, author_id: user.id, content: " <i>has joined<i>", time: d.getTime() });
+  showMessage({ author_username: user.username, author_id: user.id, content: " <i> joined<i>", time: d.getTime() });
+  messages.push({ author_username: user.username, author_id: user.id, content: " <i> joined<i>", time: d.getTime() });
 });
 
 function showMessage(msg) {
@@ -113,12 +146,14 @@ function showMessage(msg) {
   author.className = "author";
 
   // time
-  let d = new Date(msg.time);
+  // let d = new Date(msg.time);
   let time = document.createElement("p");
-  time.innerHTML = `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d
-    .getSeconds()
-    .toString()
-    .padStart(2, "0")}`;
+  time.innerHTML = relativeTime(msg.time);
+
+  //time.innerHTML = `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d
+  // .getSeconds()
+  //.toString()
+  //.padStart(2, "0")}`;
   time.className = "time";
 
   // content
@@ -147,7 +182,6 @@ function showMessage(msg) {
   messagebox.append(time, author, content);
 
   document.querySelector("#messages").append(messagebox);
-
 
   document.querySelector("#messages").scrollTop = document.querySelector("#messages").scrollHeight;
 }
@@ -188,7 +222,7 @@ document.onpaste = function (event) {
 };
 
 function deleteFiles() {
-  files = [];
+  uploadedImage = [];
 }
 
 function imageUpload(files) {
@@ -205,16 +239,66 @@ function imageUpload(files) {
 
 window.onblur = function () {
   // idle
-  focusState = 0;
+  userStatus = 0;
+  socket.emit("status_change", userStatus);
+  socket.status = userStatus;
 };
 
 window.onfocus = function () {
   // active/online
-  focusState = 1;
+  userStatus = 1;
   unreadMessages = 0;
   document.title = `Chat`;
+  socket.status = userStatus;
+  regenerateMessages();
+  socket.emit("status_change", userStatus);
 };
 
 function updateImagePreview() {
   document.querySelector("#image-preview").src = uploadedImage;
 }
+
+socket.on("user_status_change", (user) => {
+  console.log(`'${user.username}' (${user.id}) is ${statusMap[user.status]}`);
+  users[getUserById(user.id)].status = user.status;
+  generateUsers();
+});
+
+function getUserById(id) {
+  for (i in users) {
+    if (users[i].id == id) {
+      return i;
+    }
+  }
+}
+
+function relativeTime(time) {
+  let d = new Date();
+  let now = d.getTime();
+
+  let dif = now - time;
+
+  let times = [86400000, 3600000, 60000, 1000];
+  let letters = ["d", "h", "m", "s"];
+
+  if (dif < 1000) return "now";
+
+  for (let i in times) {
+    if (dif < times[i]) continue;
+
+    let count = Math.floor(dif / times[i]);
+
+    return `${count}${letters[i]}`;
+  }
+}
+
+function regenerateMessages() {
+  document.querySelector("#messages").innerHTML = "";
+  for (i in messages) {
+    showMessage(messages[i]);
+  }
+}
+
+socket.on("connect_error", (err) => {
+  document.querySelector('#join-error').innerHTML = err.message
+});
